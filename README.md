@@ -35,7 +35,6 @@ websocket-project/
 │
 ├── .gitignore # Git ignore file
 ├── README.md # Project overview and instructions
-└── Procfile # Heroku process file (optional)
 
 ```
 
@@ -49,11 +48,10 @@ websocket-project/
 ### 1. Set Up the Server
 
 1. **Navigate to the server directory:**
+
     ```bash
     cd server
     ```
-
-````
 
 2. **Install Go modules:**
 
@@ -75,11 +73,7 @@ websocket-project/
     ```
 
 2. **Serve the client files:**
-    - Use Python’s built-in HTTP server to serve the files locally:
-        ```bash
-        python3 -m http.server
-        ```
-    - Access the client application at `http://localhost:8000` in your web browser.
+    - Open the index.html file
 
 ## Usage
 
@@ -88,4 +82,3 @@ websocket-project/
 3. View the sent and received messages in the table with columns for sent data, received data, timestamp, and status.
 4. Click "Get History" to retrieve and display the last 5 messages separately below the table.
 5. Use the "Clear Chat" button to clear the message table.
-````

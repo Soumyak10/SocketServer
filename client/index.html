@@ -36,7 +36,11 @@
         </div>
 
         <script>
-            let ws = new WebSocket("ws://localhost:8080/ws");
+            let ws = new WebSocket("wss://socketserver-ufxl.onrender.com/ws");
+
+            ws.onopen = function () {
+                console.log("WebSocket connection opened.");
+            };
 
             ws.onmessage = function (event) {
                 let messageTableBody =
@@ -58,26 +62,44 @@
             function sendMessage() {
                 let input = document.getElementById("messageInput");
                 if (input.value.trim() !== "") {
-                    ws._lastSentMessage = input.value;
-                    ws.send(input.value);
-                    input.value = "";
+                    // Check if the WebSocket connection is open
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws._lastSentMessage = input.value;
+                        ws.send(input.value);
+                        input.value = "";
+                    } else {
+                        console.error(
+                            "WebSocket is not open. Cannot send message."
+                        );
+                        alert(
+                            "WebSocket is not open. Please wait and try again."
+                        );
+                    }
                 }
             }
 
             function getHistory() {
-                ws.send("history");
-                ws.onmessage = function (event) {
-                    let historyList = document.getElementById("historyList");
-                    historyList.innerHTML = "";
-                    let historyMessages = event.data.split(", ");
+                // Check if the WebSocket connection is open
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send("history");
+                    ws.onmessage = function (event) {
+                        let historyList =
+                            document.getElementById("historyList");
+                        historyList.innerHTML = "";
+                        let historyMessages = event.data.split(", ");
 
-                    historyMessages.forEach((msg) => {
-                        let li = document.createElement("li");
-                        li.textContent = msg;
-                        historyList.appendChild(li);
-                    });
-                    document.getElementById("history").style.display = "block";
-                };
+                        historyMessages.forEach((msg) => {
+                            let li = document.createElement("li");
+                            li.textContent = msg;
+                            historyList.appendChild(li);
+                        });
+                        document.getElementById("history").style.display =
+                            "block";
+                    };
+                } else {
+                    console.error("WebSocket is not open. Cannot get history.");
+                    alert("WebSocket is not open. Please wait and try again.");
+                }
             }
         </script>
     </body>
