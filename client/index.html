@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WebSocket Client</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>WebSocket Client</h1>
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Enter your message"
+                />
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            <table class="message-table">
+                <thead>
+                    <tr>
+                        <th>Sent Message</th>
+                        <th>Received Message</th>
+                    </tr>
+                </thead>
+                <tbody id="messageTableBody"></tbody>
+            </table>
+            <button class="history-btn" onclick="getHistory()">
+                Get History
+            </button>
+            <div id="history" class="history">
+                <h2>Message History</h2>
+                <ul id="historyList"></ul>
+            </div>
+        </div>
+
+        <script>
+            let ws = new WebSocket("ws://localhost:8080/ws");
+
+            ws.onmessage = function (event) {
+                let messageTableBody =
+                    document.getElementById("messageTableBody");
+                let newRow = document.createElement("tr");
+                let sentMessage = document.createElement("td");
+                let receivedMessage = document.createElement("td");
+
+                sentMessage.textContent = ws._lastSentMessage || "";
+                receivedMessage.textContent = event.data;
+
+                newRow.appendChild(sentMessage);
+                newRow.appendChild(receivedMessage);
+                messageTableBody.appendChild(newRow);
+
+                ws._lastSentMessage = "";
+            };
+
+            function sendMessage() {
+                let input = document.getElementById("messageInput");
+                if (input.value.trim() !== "") {
+                    ws._lastSentMessage = input.value;
+                    ws.send(input.value);
+                    input.value = "";
+                }
+            }
+
+            function getHistory() {
+                ws.send("history");
+                ws.onmessage = function (event) {
+                    let historyList = document.getElementById("historyList");
+                    historyList.innerHTML = "";
+                    let historyMessages = event.data.split(", ");
+
+                    historyMessages.forEach((msg) => {
+                        let li = document.createElement("li");
+                        li.textContent = msg;
+                        historyList.appendChild(li);
+                    });
+                    document.getElementById("history").style.display = "block";
+                };
+            }
+        </script>
+    </body>
+</html>
