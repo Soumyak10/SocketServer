@@ -29,7 +29,7 @@
             <button class="history-btn" onclick="getHistory()">
                 Get History
             </button>
-            <div id="history" class="history">
+            <div id="history" class="history" style="display: none">
                 <h2>Message History</h2>
                 <ul id="historyList"></ul>
             </div>
@@ -37,26 +37,21 @@
 
         <script>
             let ws = new WebSocket("wss://socketserver-ufxl.onrender.com/ws");
+            let lastSentMessage = "";
 
             ws.onopen = function () {
                 console.log("WebSocket connection opened.");
             };
 
             ws.onmessage = function (event) {
-                let messageTableBody =
-                    document.getElementById("messageTableBody");
-                let newRow = document.createElement("tr");
-                let sentMessage = document.createElement("td");
-                let receivedMessage = document.createElement("td");
-
-                sentMessage.textContent = ws._lastSentMessage || "";
-                receivedMessage.textContent = event.data;
-
-                newRow.appendChild(sentMessage);
-                newRow.appendChild(receivedMessage);
-                messageTableBody.appendChild(newRow);
-
-                ws._lastSentMessage = "";
+                if (event.data.startsWith("history:")) {
+                    // Handle history response
+                    displayHistory(event.data.substring("history:".length));
+                } else {
+                    // Handle general message
+                    displayMessage(lastSentMessage, event.data);
+                    lastSentMessage = "";
+                }
             };
 
             function sendMessage() {
@@ -64,7 +59,7 @@
                 if (input.value.trim() !== "") {
                     // Check if the WebSocket connection is open
                     if (ws.readyState === WebSocket.OPEN) {
-                        ws._lastSentMessage = input.value;
+                        lastSentMessage = input.value;
                         ws.send(input.value);
                         input.value = "";
                     } else {
@@ -82,24 +77,42 @@
                 // Check if the WebSocket connection is open
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send("history");
-                    ws.onmessage = function (event) {
-                        let historyList =
-                            document.getElementById("historyList");
-                        historyList.innerHTML = "";
-                        let historyMessages = event.data.split(", ");
-
-                        historyMessages.forEach((msg) => {
-                            let li = document.createElement("li");
-                            li.textContent = msg;
-                            historyList.appendChild(li);
-                        });
-                        document.getElementById("history").style.display =
-                            "block";
-                    };
                 } else {
                     console.error("WebSocket is not open. Cannot get history.");
                     alert("WebSocket is not open. Please wait and try again.");
                 }
+            }
+
+            function displayMessage(sentMessage, receivedMessage) {
+                let messageTableBody =
+                    document.getElementById("messageTableBody");
+                // console.log(messageTableBody.children.length);
+                if (messageTableBody.children.length >= 5) {
+                    messageTableBody.removeChild(messageTableBody.children[0]);
+                }
+                let newRow = document.createElement("tr");
+                let sentMessageCell = document.createElement("td");
+                let receivedMessageCell = document.createElement("td");
+
+                sentMessageCell.textContent = sentMessage || "";
+                receivedMessageCell.textContent = receivedMessage;
+
+                newRow.appendChild(sentMessageCell);
+                newRow.appendChild(receivedMessageCell);
+                messageTableBody.appendChild(newRow);
+            }
+
+            function displayHistory(historyData) {
+                let historyList = document.getElementById("historyList");
+                historyList.innerHTML = "";
+                let historyMessages = historyData.split(", ");
+
+                historyMessages.forEach((msg) => {
+                    let li = document.createElement("li");
+                    li.textContent = msg;
+                    historyList.appendChild(li);
+                });
+                document.getElementById("history").style.display = "block";
             }
         </script>
     </body>

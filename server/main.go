@@ -1,12 +1,13 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "net/http"
-    "github.com/gorilla/websocket"
-    "strings"
-    "sync"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 var (
@@ -45,7 +46,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
         if receivedMessage == "history" {
             mu.Lock()
-            history := strings.Join(messageHistory, ", ")
+            history := "history: " + strings.Join(messageHistory, ", ")
             mu.Unlock()
             if err := ws.WriteMessage(websocket.TextMessage, []byte(history)); err != nil {
                 log.Println("Error sending message:", err)
